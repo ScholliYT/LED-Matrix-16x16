@@ -1,0 +1,38 @@
+Teensy (set to BitBang automaticly):     
+
+0  Shift register Data
+1  Shift register Latch
+2  Shift register Clock
+
+
+6  TLC Serial input
+7  TLC Serial clock
+3  TLC XLAT
+4  TLC BLANK
+5  TLC GSCLK
+
+Nano BitBang:     
+
+5  Shift register Data
+6  Shift register Latch
+8  Shift register Clock
+
+
+7  TLC Serial input
+4  TLC Serial clock
+9  TLC XLAT
+10  TLC BLANK
+3  TLC GSCLK
+
+Nano SPI:     
+
+5  Shift register Data
+6  Shift register Latch
+8  Shift register Clock
+
+
+11  TLC Serial input
+13  TLC Serial clock
+9  TLC XLAT
+10  TLC BLANK
+3  TLC GSCLK
