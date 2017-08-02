@@ -89,29 +89,35 @@ void setup()
 void loop()
 {
 
-#if DEBUGDMX
+
+  #if DEBUGDMX
   long micGetDMX = micros();
-#endif
+  #endif
 
   getDMX();
 
-#if DEBUGDMX
+  #if DEBUGDMX
   Serial.printf("Got new DMX Values. Time µs: %d\n", micros() - micGetDMX);
-#endif
+  #endif
+
 
   for (uint8_t row = 0; row < MATRIX_ROWS; ++row)
   {
 
-#if DEBUGMULTIPLEX
+
+    #if DEBUGMULTIPLEX
     long micTlc = micros();
-#endif
+    #endif
+
 
     for (uint8_t colum = 0; colum < MATRIX_COLUMS; ++colum)
     {
 
-#if DEBUGVALUES
+
+      #if DEBUGVALUES
       Serial.printf("[%d %d %d] ", getVlaue(row, colum, 0), getVlaue(row, colum, 1), getVlaue(row, colum, 2));
-#endif
+      #endif
+
 
       // Red
       Tlc.set(colum, getVlaue(row, colum, 0) * 16);
@@ -121,30 +127,32 @@ void loop()
       Tlc.set(colum + MATRIX_COLUMS * 2, getVlaue(row, colum, 2) * 16);
     }
 
-#if DEBUGMULTIPLEX
+
+    #if DEBUGMULTIPLEX
     Serial.printf("Tlc Values for all colums. Time µs: %d\n", micros() - micTlc);
-#endif
+    #endif
 
-#if DEBUGVALUES
+    #if DEBUGVALUES
     Serial.print("\n");
-#endif
+    #endif
 
-#if DEBUGMULTIPLEX
+    #if DEBUGMULTIPLEX
     long micOutput = micros();
-#endif
+    #endif
 
     multiplex(row);
 
-#if DEBUGMULTIPLEX
+    #if DEBUGMULTIPLEX
     Serial.printf("Send Multiplex ShiftRegister. Time µs: %d\n", micros() - micOutput);
     micOutput = micros();
-#endif
+    #endif
 
     Tlc.update();
 
-#if DEBUGMULTIPLEX
+    #if DEBUGMULTIPLEX
     Serial.printf("Update Tlc. Time µs: %d\n", micros() - micOutput);
-#endif
+    #endif
+
 
     delayMicroseconds(100);
     //delay(100);
@@ -158,9 +166,11 @@ void loop()
     digitalWrite(SLatch, HIGH); // Latch High
   }
 
-#if DEBUGVALUES
+
+  #if DEBUGVALUES
   Serial.print("\n\n\n");
-#endif
+  #endif
+
 
 }
 
@@ -177,21 +187,25 @@ void getDMX()
   if (readA == 510)
   {
 
-#if DEBUG
+
+    #if DEBUG
     Serial.printf("DMX.A: %d\n", readA);
-#endif
+    #endif
+
 
     memcpy(data, tempA, sizeof(tempA));
   }
   else
-    if (readA == -1)
-    {
 
-#if DEBUG
-      Serial.println("There is no DMX package available for port A");
-#endif
+  if (readA == -1)
+  {
 
-    }
+    #if DEBUG
+    Serial.println("There is no DMX package available for port A");
+    #endif
+
+  }
+
   else
   {
     Serial.printf("%s: %d\n", "Error reading all 510 required DMX Channels from DMX.A. Read: ", readA);
@@ -201,21 +215,25 @@ void getDMX()
   if (readB == 258)
   {
 
-#if DEBUG
+
+    #if DEBUG
     Serial.printf("DMX.B: %d\n", readB);
-#endif
+    #endif
+
 
     memcpy(data + 510, tempB, sizeof(tempB));
   }
   else
-    if (readB == -1)
-    {
 
-#if DEBUG
-      Serial.println("There is no DMX package available for port B");
-#endif
+  if (readB == -1)
+  {
 
-    }
+    #if DEBUG
+    Serial.println("There is no DMX package available for port B");
+    #endif
+
+  }
+
   else
   {
     Serial.printf("%s: %d\n", "Error reading all 258 required DMX Channels from DMX.A. Read: ", readB);
