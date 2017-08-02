@@ -14,7 +14,10 @@ So this is the second LED Matrix we are building. The first one was a bit smalle
 
 ## The building process
 
-![Alt text](docs/1.png?raw=true "The main frame")
+![main frame](docs/images/frame.png?raw=true "The main frame")
+![Backplate](docs/images/Back.png?raw=true "The main backplate")
+So after some weekends of soldering 4 wires to every single SMD LED we finally made it.
+![Soldering LEDs](docs/images/working.png?raw=true "The process of soldering all wires to 256 LEDs")
 
 ## DMX
 Using ArtNet Node running on ESP8266. See [this awesome project](https://github.com/mtongnz/ESP8266_ArtNetNode_v2).
