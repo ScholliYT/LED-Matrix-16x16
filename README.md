@@ -14,6 +14,7 @@ So this is the second LED Matrix we are building. The first one was a bit smalle
 
 ## The building process
 
+![Alt text](docs/1.png?raw=true "The main frame")
 
 ## DMX
 Using ArtNet Node running on ESP8266. See [this awesome project](https://github.com/mtongnz/ESP8266_ArtNetNode_v2).
