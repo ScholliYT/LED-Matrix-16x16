@@ -89,6 +89,7 @@ void setup()
 void loop()
 {
 
+
   #if DEBUGDMX
   long micGetDMX = micros();
   #endif
@@ -99,19 +100,24 @@ void loop()
   Serial.printf("Got new DMX Values. Time µs: %d\n", micros() - micGetDMX);
   #endif
 
+
   for (uint8_t row = 0; row < MATRIX_ROWS; ++row)
   {
+
 
     #if DEBUGMULTIPLEX
     long micTlc = micros();
     #endif
 
+
     for (uint8_t colum = 0; colum < MATRIX_COLUMS; ++colum)
     {
+
 
       #if DEBUGVALUES
       Serial.printf("[%d %d %d] ", getVlaue(row, colum, 0), getVlaue(row, colum, 1), getVlaue(row, colum, 2));
       #endif
+
 
       // Red
       Tlc.set(colum, getVlaue(row, colum, 0) * 16);
@@ -120,6 +126,7 @@ void loop()
       // Blue
       Tlc.set(colum + MATRIX_COLUMS * 2, getVlaue(row, colum, 2) * 16);
     }
+
 
     #if DEBUGMULTIPLEX
     Serial.printf("Tlc Values for all colums. Time µs: %d\n", micros() - micTlc);
@@ -146,6 +153,7 @@ void loop()
     Serial.printf("Update Tlc. Time µs: %d\n", micros() - micOutput);
     #endif
 
+
     delayMicroseconds(100);
     //delay(100);
 
@@ -158,9 +166,11 @@ void loop()
     digitalWrite(SLatch, HIGH); // Latch High
   }
 
+
   #if DEBUGVALUES
   Serial.print("\n\n\n");
   #endif
+
 
 }
 
@@ -177,13 +187,16 @@ void getDMX()
   if (readA == 510)
   {
 
+
     #if DEBUG
     Serial.printf("DMX.A: %d\n", readA);
     #endif
 
+
     memcpy(data, tempA, sizeof(tempA));
   }
   else
+
   if (readA == -1)
   {
 
@@ -192,6 +205,7 @@ void getDMX()
     #endif
 
   }
+
   else
   {
     Serial.printf("%s: %d\n", "Error reading all 510 required DMX Channels from DMX.A. Read: ", readA);
@@ -201,13 +215,16 @@ void getDMX()
   if (readB == 258)
   {
 
+
     #if DEBUG
     Serial.printf("DMX.B: %d\n", readB);
     #endif
 
+
     memcpy(data + 510, tempB, sizeof(tempB));
   }
   else
+
   if (readB == -1)
   {
 
@@ -216,6 +233,7 @@ void getDMX()
     #endif
 
   }
+
   else
   {
     Serial.printf("%s: %d\n", "Error reading all 258 required DMX Channels from DMX.A. Read: ", readB);
