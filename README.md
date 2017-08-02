@@ -15,7 +15,7 @@ So this is the second LED Matrix we are building. The first one was a bit smalle
 ![old Matrix](docs/images/oldMatrix.png?raw=true "The old 10x10 Matrix")
 
 ## How it should be build
-###### So the basic data flow should look like this
+##### So the basic data flow should look like this
 ![dataflow](docs/images/function.png?raw=true "function - Data flow")
 
 ## The building process
@@ -23,22 +23,22 @@ So this is the second LED Matrix we are building. The first one was a bit smalle
 ![main frame](docs/images/frame.png?raw=true "The main frame")
 ![Backplate](docs/images/Back.png?raw=true "The main backplate")
 
-###### So after some weekends of soldering 4 wires to every single SMD LED we finally made it.
+##### So after some weekends of soldering 4 wires to every single SMD LED we finally made it.
 
 ![First LED](docs/images/firstled.png?raw=true "The first finished LED")
 ![Soldering LEDs](docs/images/working.png?raw=true "The process of soldering all wires to 256 LEDs")
 
-###### Lets start soldering them on the frame...
+##### Lets start soldering them on the frame...
 
 ![First](docs/images/firstmountedled.png?raw=true "The first LED is mounted")
 ![Process](docs/images/process.png?raw=true "We're making progress")
 
-###### After dozen weekends spend soldering we made it
+##### After dozen weekends spend soldering we made it
 
 ![Finished](docs/images/finished.png?raw=true "Finally we made it")
 
 ## First testing
-###### As you can see. It works! :) But there are some LEDs that need to be fixed
+##### As you can see. It works! :) But there are some LEDs that need to be fixed
 
 ![working](docs/images/working.gif?raw=true "It works")
 
