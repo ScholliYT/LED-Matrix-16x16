@@ -49,7 +49,6 @@ void ShiftOut(uint8_t myDataOut)
   // that it will be pin Q0 that lights.
   for (uint8_t i = 0; i <= 7; i++)
   {
-    delayMicroseconds(1);
     digitalWrite(SClock, LOW); // Clock aus
     // if the value passed to myDataOut and a bitmask result
     // true then... so if we are at i=6 and our value is

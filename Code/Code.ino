@@ -37,6 +37,10 @@ and GND.
 #define DEBUGVALUES 0
 #define DEBUGDMX 0
 #define DEBUGMULTIPLEX 0
+#define DEBUGREFRESHRATE 0
+#if DEBUGREFRESHRATE
+long lastLoop = 0;
+#endif
 // Matrix Size
 #define MATRIX_ROWS 16
 #define MATRIX_COLUMNS 16
@@ -77,7 +81,7 @@ void setup()
   delay(50);
   digitalWrite(13, LOW);
   delay(50);
-}*/
+  }*/
 digitalWrite(13, HIGH);
 delay(500);
 digitalWrite(13, LOW);
@@ -90,6 +94,11 @@ Tlc.init();
 
 void loop()
 {
+  #if DEBUGREFRESHRATE
+  long time = micros() - lastLoop;
+  Serial.printf("Refresh Time µs: %d. Hz: %d\n", time, 1000000 / time);
+  lastLoop = micros();
+  #endif
 
   #if DEBUGDMX
   long micGetDMX = micros();
@@ -103,30 +112,26 @@ void loop()
 
   for (int row = 0; row < MATRIX_ROWS; ++row)
   {
-
     #if DEBUGMULTIPLEX
     long micTlc = micros();
     #endif
-
-    Tlc.clear();
     for (int column = 0; column < MATRIX_COLUMNS; ++column)
     {
 
       #if DEBUGVALUES
-      Serial.printf("[%d %d %d] ", getValue(row, column, 0), getValue(row, column, 1), getValue(row, column, 2));
+      Serial.printf("[%d %d %d] ", data[row * 16 * 3 + column * 3 + 0], data[row * 16 * 3 + column * 3 + 1], data[row * 16 * 3 + column * 3 + 2]);
       #endif
 
       // Red
-      
-      Tlc.set(column, data[row * 16 * 3 + column * 3 + 0]);
+      Tlc.set(column                    , data[row * 48 + column * 3    ] * 16);
       // Green
-      Tlc.set(column + MATRIX_COLUMNS, data[row * 16 * 3 + column * 3 + 1] * 16);
+      Tlc.set(column + MATRIX_COLUMNS   , data[row * 48 + column * 3 + 1] * 16);
       // Blue
-      Tlc.set(column + MATRIX_COLUMNS * 2, data[row * 16 * 3 + column * 3 + 2] * 16);
+      Tlc.set(column + MATRIX_COLUMNS *2, data[row * 48 + column * 3 + 2] * 16);
     }
 
     #if DEBUGMULTIPLEX
-    Serial.printf("Tlc Values for all columns. Time µs: %d\n", micros() - micTlc);
+    Serial.printf("Set   Tlcs. Time µs: %d\n", micros() - micTlc);
     #endif
 
     #if DEBUGVALUES
@@ -136,22 +141,15 @@ void loop()
     #if DEBUGMULTIPLEX
     long micOutput = micros();
     #endif
-    clearMultiplex();
+    while(Tlc.update()); //Wait to shift data
+    clearMultiplex();    // --- clear Shift register in meanwhile ---- Data COULD already be latched
+    while(tlc_needXLAT); //Wait to latch data
     multiplex(row);
-
     #if DEBUGMULTIPLEX
-    Serial.printf("Send Multiplex ShiftRegister. Time µs: %d\n", micros() - micOutput);
-    micOutput = micros();
+    Serial.printf("Send  Data. Time µs: %d\n", micros() - micOutput);
     #endif
 
-    Tlc.update();
-
-    #if DEBUGMULTIPLEX
-    Serial.printf("Update Tlc. Time µs: %d\n", micros() - micOutput);
-    #endif
-
-    //delayMicroseconds(100000);
-    // delay(100);
+    delayMicroseconds(900); //Give LEDs some ontime - Best possible value: 900
   }
 
   #if DEBUGVALUES
@@ -216,7 +214,6 @@ void multiplex(int row)
 {
   digitalWriteFast(SLatch, LOW); // Latch Low
   uint16_t shift_data = 1 << row;
-  //ShiftOut(shift_data);
   // ============================= SHIFTOUT =============================
   for (uint16_t i = 0; i < 16; i++)
   {
@@ -226,26 +223,23 @@ void multiplex(int row)
     __asm__ __volatile__ ("nop\n\t");
     digitalWriteFast(SClock, LOW);
   }
-  digitalWriteFast(SData, LOW);
   // ============================= SHIFTOUT =============================
+  digitalWriteFast(SData, LOW);
   digitalWriteFast(SLatch, HIGH); // Latch High
 }
 
 void clearMultiplex()
 {
   digitalWriteFast(SLatch, LOW); // Latch Low
-  uint16_t shift_data = 0;
-  //ShiftOut(shift_data);
   // ============================= SHIFTOUT =============================
   for (uint16_t i = 0; i < 16; i++)
   {
-    digitalWriteFast(SData, !!(shift_data & (1 << i)));
+    digitalWriteFast(SData, LOW);
     digitalWriteFast(SClock, HIGH);
     __asm__ __volatile__ ("nop\n\t");
     __asm__ __volatile__ ("nop\n\t");
     digitalWriteFast(SClock, LOW);
   }
-  digitalWriteFast(SData, LOW);
   // ============================= SHIFTOUT =============================
   digitalWriteFast(SLatch, HIGH); // Latch High
 }
