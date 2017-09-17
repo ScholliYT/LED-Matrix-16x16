@@ -14,7 +14,7 @@ So this is the second LED Matrix we are building. The first one was a bit smalle
 
 ![old Matrix](docs/images/oldMatrix.png?raw=true "The old 10x10 Matrix")
 
-## How it should be build
+## The plan
 ##### So the basic data flow should look like this
 ![dataflow](docs/images/function.png?raw=true "function - Data flow")
 
