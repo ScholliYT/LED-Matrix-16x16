@@ -19,7 +19,7 @@ So this is the second LED Matrix we are building. The first one was a bit smalle
 ![dataflow](docs/images/function.png?raw=true "function - Data flow")
 
 ## Schematic
-![MainCircuitBoard](docs/images/Hauptplatine.png?raw=true "Circuit Board")
+![MainCircuitBoard](Schematics/Hauptplatine.png?raw=true "Circuit Board")
 
 ## The building process
 
