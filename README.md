@@ -18,6 +18,9 @@ So this is the second LED Matrix we are building. The first one was a bit smalle
 ##### So the basic data flow should look like this
 ![dataflow](docs/images/function.png?raw=true "function - Data flow")
 
+## Schematic
+![MainCircuitBoard](Schematics/Hauptplatine.svg?raw=true "function - Circuit Board)
+
 ## The building process
 
 ![main frame](docs/images/frame.png?raw=true "The main frame")
