@@ -1,0 +1,78 @@
+# fill screen horizontal snakewise in Jinx!Script
+# (c) 2014 Sven Karschewski
+
+# initialize
+:init
+
+	# random initial color value
+	red = 0
+	green = 0
+	blue = 0
+	red_new = 0
+	green_new = 0
+	blue_new = 0
+	gosub get_color
+
+	# set start position left / top
+	pos_x = 0
+	pos_y = 0
+
+	# set rectangle size
+	config rect_size = 4
+
+	# set x steps to rect size, we will negate (*-1) it after every line to change direction
+	step_x = rect_size
+
+end
+
+
+# render frame
+:render
+
+	# render a filled rectangle at the actual position
+	rect pos_x, pos_y, pos_x+rect_size-1, pos_y+rect_size-1, red, green, blue, 1
+
+	# increment x position
+	pos_x = pos_x + step_x
+
+	# test if x position is outside the matrix 
+	# if yes, increment y position and change step_x direction
+	if pos_x > matrix_x - 1
+		step_x = step_x * (-1)
+		pos_y = pos_y + rect_size
+	else if pos_x < 0
+		step_x = step_x * (-1)
+		pos_y = pos_y + rect_size
+	endif
+
+	# test if y position is outside matrix
+	# if yes, get back to top off the screen and set a new random color
+	if pos_y > matrix_y - 1
+		pos_y = 0
+		gosub get_color
+	endif
+
+end
+
+
+# get random color (primary colors only)
+:get_color
+
+	
+	while red_new=red & green_new=green & blue_new=blue
+
+		red_new=0
+		green_new=0
+		blue_new=0
+		while red_new+green_new+blue_new = 0 | red_new+green_new+blue_new = 255*3
+			red_new=rnd(1)*255
+			green_new=rnd(1)*255
+			blue_new=rnd(1)*255
+		wend
+	wend
+
+	red=red_new
+	green=green_new
+	blue=blue_new
+
+return

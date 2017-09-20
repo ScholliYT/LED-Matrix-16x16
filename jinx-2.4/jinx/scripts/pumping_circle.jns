@@ -1,0 +1,52 @@
+# pumping circle with autocolor in Jinx!Script
+# (c) 2014 Sven Karschewski
+
+# you need to activate the autocolor inside the Jinx!Script channel config !
+
+
+# initialize
+:init
+	
+	# set max radius to fit inside the matrix
+	if matrix_x > matrix_y
+		maxradius = (matrix_y / 2) 
+	else
+		maxradius = (matrix_x / 2) 
+	endif
+
+	# set start radius of circle
+	radius = 1
+
+	# set intial step for radius change per frame
+	step = 1
+
+	# open or filled circle ?
+	filled = 1
+
+end
+
+
+# render frame
+:render
+
+	# black out screen 
+	clear
+
+	# draw circle in the middle of the matrix
+	circle matrix_x/2, matrix_y/2, radius, autocolor_red, autocolor_green, autocolor_blue, filled
+
+	# change circle radius
+	radius = radius + step
+
+	# check if radius is outside the given bounds (1-maxradius)
+	# if yes negate step for radius change
+	if radius > maxradius
+		step = -1
+		radius = maxradius
+	endif
+	if radius < 1
+		step = 1
+		radius = 1
+	endif	
+
+end

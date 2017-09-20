@@ -1,0 +1,78 @@
+# simple vu meter in Jinx!Script
+# (c) 2015 Sven Karschewski
+
+# you need to activate the audio RMS function inside the Jinx!Script channel config !
+
+:init
+	
+	# peak hold active (0/1)
+	config peak_hold = 1
+
+	# peak hold time
+	config peak_time = 10
+
+	# store old vu states
+	vu_left = 0
+	vu_right = 0
+	vu_left_top = 0
+	vu_left_wait = peak_time
+	vu_right_top = 0
+	vu_right_wait = peak_time
+
+	# width and position
+	width = (matrix_y-2) / 2
+	left_y = 0
+	right_y = width + 2
+end
+
+:render
+
+	# fast rise, interpolate to get a smooth fall
+	if vu_left < audio_rms_left
+		vu_left = audio_rms_left
+	else
+		vu_left = (2*vu_left + audio_rms_left) / 3
+	endif
+	if vu_right < audio_rms_right
+		vu_right = audio_rms_right
+	else
+		vu_right = (2*vu_right + audio_rms_right) / 3
+	endif
+
+	# peak hold
+	if peak_hold > 0
+		if vu_left >= vu_left_top
+			vu_left_top = vu_left
+			vu_left_wait = peak_time
+		else
+			if vu_left_wait > 0
+				vu_left_wait = vu_left_wait - 1
+			else
+				vu_left_top = (4*vu_left_top + vu_left) / 5
+			endif
+		endif
+		if vu_right >= vu_right_top
+			vu_right_top = vu_right
+			vu_right_wait = peak_time
+		else
+			if vu_right_wait > 0
+				vu_right_wait = vu_right_wait - 1
+			else
+				vu_right_top = (4*vu_right_top + vu_left) / 5
+			endif
+		endif
+	endif
+
+	# precalculate scale factor
+	scale = (matrix_x - 1) / 100
+
+	# paint vu meter
+	clear
+	rect 0, left_y, vu_left*scale, left_y+width-1, 0, 255, 0, 1
+	rect 0, right_y, vu_right*scale, right_y+width-1, 0, 255, 0, 1
+
+	if peak_hold > 0
+		line vu_left_top*scale, left_y, vu_left_top*scale, left_y+width-1, 255, 0, 0 
+		line vu_right_top*scale, right_y, vu_right_top*scale, right_y+width-1, 255, 0, 0 
+	endif
+end

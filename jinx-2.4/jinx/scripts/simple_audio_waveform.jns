@@ -1,0 +1,78 @@
+# simple audio wave form in Jinx!Script
+# (c) 2015 Sven Karschewski
+
+# you need to activate the audio RMS function inside the Jinx!Script channel config !
+# if you activate autocolor inside the channel config it will be used instead of the given static color
+
+:init
+	
+	# color if autocolor is inactive
+	config red = 255
+	config green = 0
+	config blue = 0
+
+	# fade out level
+	config fade_out = 3
+
+	# make waveform using mono instead of stereo (left channel up, right channel down)
+	config mono = 0
+	
+	# initialize to clear screen on first frame
+	init = 1
+	
+	# start position
+	start_x = -1
+
+	# old values to restore color
+	left_old = 0
+	right_old = 0
+
+end
+
+:render
+
+	# clear screen on first frame
+	if init = 1
+		clear
+		init = 0
+	endif
+
+	# make values mono ?
+	if mono > 0
+		audio_rms_left = (audio_rms_left + audio_rms_right) / 2
+		audio_rms_right = audio_rms_left 
+	endif 
+
+	# use given color if autocolor is inactive
+	if autocolor_red = 255 & autocolor_green = 255 & autocolor_blue = 255
+		autocolor_red = red
+		autocolor_green = green
+		autocolor_blue = blue
+	endif
+
+	# restore color 
+	line start_x, matrix_y/2, start_x, matrix_y/2 - (left_old/100)*matrix_y/2, autocolor_red-50, autocolor_green-50, autocolor_blue-50
+	line start_x, matrix_y/2, start_x, matrix_y/2 + (right_old/100)*matrix_y/2, autocolor_red-50, autocolor_green-50, autocolor_blue-50
+
+	if start_x = matrix_x-1
+
+		# move screen
+		scroll -1,0
+	else
+
+		# move line
+		start_x = start_x + 1
+	endif
+
+	# fade screen
+	fade fade_out
+
+	# draw new rms line
+	line start_x, matrix_y/2, start_x, matrix_y/2 - (audio_rms_left/100)*matrix_y/2, autocolor_red, autocolor_green, autocolor_blue
+	line start_x, matrix_y/2, start_x, matrix_y/2 + (audio_rms_right/100)*matrix_y/2, autocolor_red, autocolor_green, autocolor_blue
+
+	# save the rms values
+	left_old=audio_rms_left
+	right_old=audio_rms_right
+
+end

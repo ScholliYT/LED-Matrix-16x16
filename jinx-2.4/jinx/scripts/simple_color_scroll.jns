@@ -1,0 +1,32 @@
+# simple color scroll using hsv2rgb in Jinx!Script
+# (c) 2015 Sven Karschewski
+
+
+:init
+
+	# color change speed	
+	config step = 2
+
+	# set hue to 0
+	hue = 0
+
+end
+
+:render
+
+	# move the screen 1px left
+	scroll -1,0
+
+	# get rgb values for hsv color by hue
+	hsv2rgb hue, 255, 255, red, green, blue
+	
+	# draw line
+	line matrix_x-1, 0, matrix_x-1, matrix_y, red, green, blue
+	
+	# increment hue by step
+	hue = hue + step
+	if hue > 360 
+		hue = 0
+	endif
+
+end

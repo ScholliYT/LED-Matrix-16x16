@@ -1,0 +1,145 @@
+# Moving Tile Puzzle in Jinx!Script
+# original code was written in MAS Script (c) by M. Schütze / 29.10.07
+# rewrite in Jinx!Script by Sven Karschewski
+
+
+# routine for initializing
+:init
+	# size of the puzzle tile
+	config size=8
+
+
+	# we need an init flag to run the initial puzzle init inside the :render function
+	# because we cant draw anything on the matrix inside the regular :init function
+	draw_puzzle=1
+end
+
+
+# main routine for frame generation
+:render
+
+	# draw initial puzzle screen
+	if draw_puzzle = 1
+		gosub draw_puzzle
+		draw_puzzle=0
+	endif	
+
+	# loop over pixelstep
+	for ps=1 to pixelstep
+
+		# select new tile to move
+		if x_pos = x_end & y_pos = y_end
+			gosub new_tile
+		endif	
+
+		#lets move the tile
+
+		#delete the moved part on the old position
+		if x_pos < x_end
+			line x_pos, y_pos, x_pos, y_pos+size-1, 0, 0, 0
+			x_pos=x_pos+1
+		else if x_pos > x_end
+			line x_pos+size-1, y_pos, x_pos+size-1, y_pos+size-1, 0, 0, 0
+			x_pos=x_pos-1
+		endif
+		if y_pos < y_end
+			line x_pos, y_pos, x_pos+size-1, y_pos, 0, 0, 0
+			y_pos=y_pos+1
+		else if y_pos > y_end
+			line x_pos, y_pos+size-1, x_pos+size-1, y_pos+size-1, 0, 0, 0
+			y_pos=y_pos-1
+		endif
+
+		#and draw the tile on the new position
+		rect x_pos, y_pos, x_pos+size-1, y_pos+size-1, fill_red, fill_green, fill_blue, 1
+		
+		#if the tile is sized 3 or more place a corner around
+		if size > 2
+			rect x_pos, y_pos, x_pos+size-1, y_pos+size-1, border_red, border_green, border_blue, 0
+		endif
+
+	next
+end
+
+
+#subroutine for initial puzzle creation
+:draw_puzzle
+
+	for x_pos=0 to matrix_x-1 step size
+		for y_pos=0 to matrix_y-1 step size
+		
+			#get a random color for the new tile
+			border_red=rnd(127)+128
+			border_green=rnd(127)+128
+			border_blue=rnd(127)+128
+
+			fill_red=border_red-50
+			fill_green=border_green-50
+			fill_blue=border_blue-50
+
+			rect x_pos, y_pos, x_pos+size-1, y_pos+size-1, fill_red, fill_green, fill_blue, 1
+				
+			#if the tile is sized 3 or more place a corner around
+			if size > 2
+				rect x_pos, y_pos, x_pos+size-1, y_pos+size-1, border_red, border_green, border_blue, 0
+			endif
+		next
+	next	
+		
+	#set the end and actual position to the same value to get into tile select at the first run
+	x_end = x_pos
+	y_end = y_pos
+	x_old = size * rnd(matrix_x/size-1)
+	y_old = size * rnd(matrix_y/size-1)
+	rect x_old, y_old, x_old+size-1, y_old+size-1, 0, 0, 0, 1
+
+return
+
+
+#subroutine for selecting a new tile to move
+:new_tile
+
+	while x_pos = x_end & y_pos = y_end
+		x_pos = x_old
+		y_pos = y_old
+		random=rnd(3)
+		if random = 0
+			if x_old > 0
+				x_pos=x_old-size
+			else
+				x_pos=x_old+size
+			endif
+		else if random = 1
+			if x_old < matrix_x-size
+				x_pos=x_old+size
+			else
+				x_pos=x_old-size
+			endif
+		else if random = 2
+			if y_old > 0
+				y_pos=y_old-size
+			else
+				y_pos=y_old+size
+			endif			
+		else if random = 3
+			if y_old < matrix_y-size
+				y_pos=y_old+size
+			else
+				y_pos=y_old-size
+			endif
+		endif				
+
+	wend
+	x_end = x_old
+	y_end = y_old
+	x_old = x_pos
+	y_old = y_pos
+		
+	#get color of the tile we want to move
+	pget x_pos, y_pos, border_red, border_green, border_blue
+
+	fill_red=border_red-50
+	fill_green=border_green-50
+	fill_blue=border_blue-50
+
+return

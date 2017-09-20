@@ -1,0 +1,77 @@
+# Simple Snake in Jinx!Script
+# (c) 2014 Sven Karschewski
+
+
+# initialize
+:init
+	
+	# random movement vector for snake
+	move_x=(rnd(20)/10)+1
+	move_y=(rnd(20)/10)+1
+	
+	# random start position for snake
+	pos_x=rnd(matrix_x)
+	pos_y=rnd(matrix_y)
+	
+	# initial color value and color step
+	color=255
+	color_step=-2
+	
+	# radius of the circle in pixel
+	config radius=4
+	
+	# fade out value
+	config fade_step=10
+
+end
+
+
+# render frame
+:render
+
+	# fade out old screen to get the snake effect
+	fade fade_step
+	
+	# loop over to speed up if pixelstep from Jinx! is set to value > 1
+	for n=1 to pixelstep
+
+		# draw a filled circle with the given radius at the snake position 
+		circle pos_x, pos_y, radius, color, 255-color, 0, 1
+
+		# add movement vector to position
+		pos_x=pos_x+move_x
+		pos_y=pos_y+move_y
+		
+		# if new x position is outside the screen, get a new random vector and reverse it
+		if pos_x > matrix_x-1-radius
+			pos_x=matrix_x-1-radius
+			move_x=((rnd(20)/10)+1)*(-1)
+		else if pos_x < radius
+			pos_x=radius
+			move_x=((rnd(20)/10)+1)
+		endif
+		
+		# if new y position is outside the screen, get a new random vector and reverse it
+		if pos_y > matrix_y-1-radius
+			pos_y=matrix_y-1-radius
+			move_y=((rnd(20)/10)+1)*(-1)
+		else if pos_y < radius
+			pos_y=radius
+			move_y=((rnd(20)/10)+1)
+		endif
+
+	next	
+
+	# add color_step to color value
+	color=color+color_step
+	
+	# if the new color value is outside the bounds (0-255) reverse color_step
+	if color < 0
+		color=0
+		color_step=color_step*(-1)
+	else if color > 255
+		color=255
+		color_step=color_step*(-1)
+	endif
+	
+end

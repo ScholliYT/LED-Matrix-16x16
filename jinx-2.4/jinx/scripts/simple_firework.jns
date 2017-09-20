@@ -1,0 +1,121 @@
+# Firework in Jinx!Script
+# algorithm is based on a demo written by Josh83 (josh83@wanadoo.fr)
+# (c) 2014 Sven Karschewski
+
+
+# routine for initializing
+:init
+
+	#gravity for particles 9.8 would be the real world gravity ;)
+	config gravity=9.8
+	
+	#number of particles of the firework
+	config particles=30
+
+	#length of particle
+	config particle_length=7
+	
+	#particle fragment distance
+	config particle_step=15
+
+	#particle start speed
+	config particle_start_speed=10
+
+	# only use primary colors for random color ?
+	config primary_color=0
+
+	
+	#flag for creating a new explosion on start
+	restart=1
+	
+end
+
+
+# main routine for frame generation
+:render
+
+	#create a new explosion
+	if restart=1
+		gosub new_explosion
+		restart=0
+	endif
+
+	#clear the matrix
+	clear
+	
+	#step over particle length
+	for n=0 to particle_length*10-1 step particle_step
+
+		#pre calculate time
+		time=(lifetime+n*0.1)*0.1
+		if time<0
+			time=0
+		endif
+			
+		#calculate and draw the particle
+		for i=0 to particles-1
+			
+			x=particle_speed[i]*cos(particle_angle[i])*time+matrix_x/2+pos_x
+			y=matrix_y-(-0.5*gravity*time*time+particle_speed[i]*sin(particle_angle[i])*time+matrix_y/2)+pos_y
+			pset x, y, red-color_step, green-color_step, blue-color_step
+
+		next
+		
+	next
+	
+	#rise the age of the particle
+	lifetime=lifetime+1
+	color_step=color_step+5
+
+	#reached lifetime of explosion ?
+	if lifetime>=20
+		#set flag to start next explosion
+		restart=1
+	endif
+
+end
+
+
+#subroutine to create a new explosion
+:new_explosion
+
+	#position of the new explosion
+	pos_x=rnd(matrix_x/2)-matrix_x/4
+	pos_y=rnd(matrix_y/2)-matrix_y/4
+
+	#create particles
+	for n=0 to particles-1
+		
+		#set a random speed for particle movement
+		particle_speed[n]=rnd(20)-10+particle_start_speed
+		
+		#set a random angle for particle movement
+		#take a value inside pi as angle and start one out of 5 in the upper direction
+		if rnd(4) = 2
+			particle_angle[n]=rnd(314)*0.01*(-1)
+		else
+			particle_angle[n]=rnd(314)*0.01
+		endif
+	next
+	
+	#start explosion
+	lifetime=particle_length*(-1)
+	color_step=0;
+
+	#get new random color
+	if primary_color > 0
+		red=0;
+		green=0;
+		blue=0;
+		while red+green+blue = 0 | red+green+blue = 255*3
+			red=rnd(1)*255
+			green=rnd(1)*255
+			blue=rnd(1)*255
+		wend
+	else
+		red=rnd(255)
+		green=rnd(255)
+		blue=rnd(255)
+	endif
+	
+return

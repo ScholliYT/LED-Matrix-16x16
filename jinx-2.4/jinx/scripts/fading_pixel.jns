@@ -1,0 +1,56 @@
+# Fading Pixel in Jinx!Script
+# (c) 2014 Sven Karschewski
+
+# you need to activate the autocolor inside the Jinx!Script channel config !
+
+:init
+	
+	# how many new pixel per frame 
+	config pixel_count = 40
+
+	# size of the pixel 
+	config pixel_size = 3
+
+	# fade out step (higher means faster fadeout) 
+	config fade_step = 30
+
+	# set to 1 to use a random color per pixel or 0 to use autocolor
+	config random_color = 1
+
+end
+
+:render
+
+	# fade out screen 
+	fade fade_step
+
+	# if random_color is inactive get autocolor values
+	if random_color <> 1
+		red = autocolor_red
+		green = autocolor_green
+		blue = autocolor_blue
+	endif
+
+	# loop for pixel count per frame
+	for n=1 to pixel_count
+
+		# if random color is active get random values
+		if random_color = 1
+			red = rnd(255)
+			green = rnd(255)
+			blue = rnd(255)
+		endif
+
+		# get random position of new pixel
+		x = rnd(matrix_x)
+		y = rnd(matrix_y)
+
+		# if pixel size is 1 use plot for a single pixel else use rect to produce bigger "pixel"
+		if pixel_size = 1
+			pset x, y, red, green, blue
+		else
+			rect x, y, x+Pixel_size-1, y+pixel_size-1, red, green, blue, 1
+		endif
+	next
+
+end
