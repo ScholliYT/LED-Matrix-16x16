@@ -1,4 +1,4 @@
-# LED-Matrix-16x16
+B# LED-Matrix-16x16
 ## A 16x16 RGB LED Matrix controlled by DMX over wifi
 
 __Some facts:__
@@ -46,5 +46,5 @@ So this is the second LED Matrix we are building. The first one was a bit smalle
 ![working](docs/images/working.gif?raw=true "It works")
 
 ## DMX
-Using ArtNet Node running on ESP8266. See [this awesome project](https://github.com/mtongnz/ESP8266_ArtNetNode_v2).
+Using ArtNet Node running on an ESP8266. See [this awesome project](https://github.com/mtongnz/ESP8266_ArtNetNode_v2).
 
