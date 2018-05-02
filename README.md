@@ -26,7 +26,7 @@ So this is the second LED Matrix we are building. The first one was a bit smalle
 ![multiplexing1](docs/images/multiplexing1.gif?raw=true "Multiplexing")
 ![multiplexing2](docs/images/multiplexing2.gif?raw=true "Multiplexing")
 
-The images are from 1[this](http://www.instructables.com/id/Multiplexing-with-Arduino-and-the-74HC595/) instrucable. There you can also find more information on multiplexing: 
+The images are from [this](http://www.instructables.com/id/Multiplexing-with-Arduino-and-the-74HC595/) instrucable. There you can also find more information on multiplexing: 
 
 ## The building process
 
