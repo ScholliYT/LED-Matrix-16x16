@@ -21,6 +21,10 @@ So this is the second LED Matrix we are building. The first one was a bit smalle
 ## Schematic
 ![MainCircuitBoard](Schematics/Hauptplatine.png?raw=true "Circuit Board")
 
+## How multiplexing works
+##### This are some images explaining how multiplexing with a LED Matrix works
+![multiplexing1](docs/images/multiplexing1.gif?raw=true "Multiplexing")
+
 ## The building process
 
 ![main frame](docs/images/frame.png?raw=true "The main frame")
