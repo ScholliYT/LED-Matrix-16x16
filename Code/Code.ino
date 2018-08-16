@@ -33,11 +33,11 @@ and GND.
 #include "Tlc5940.h"
 #include "TeensyDMX.h"
 // Debug
-#define DEBUG 1
+#define DEBUG 0l
 #define DEBUGVALUES 0
 #define DEBUGDMX 0
-#define DEBUGMULTIPLEX 1
-#define DEBUGREFRESHRATE 1
+#define DEBUGMULTIPLEX 0
+#define DEBUGREFRESHRATE 0
 #if DEBUGREFRESHRATE
 long lastLoop = 0;
 #endif
@@ -124,46 +124,10 @@ void loop()
 
       // Red
       Tlc.set(column                    , data[row * 48 + column * 3    ] * 16);
-
-    }
-
-    #if DEBUGMULTIPLEX
-    Serial.printf("Set   Tlcs. Time µs: %d\n", micros() - micTlc);
-    #endif
-
-    #if DEBUGVALUES
-    Serial.print("\n");
-    #endif
-
-    #if DEBUGMULTIPLEX
-    long micOutput = micros();
-    #endif
-    while(Tlc.update()); //Wait to shift data
-    clearMultiplex();    // --- clear Shift register in meanwhile ---- Data COULD already be latched
-    while(tlc_needXLAT); //Wait to latch data
-    multiplex(row);
-    #if DEBUGMULTIPLEX
-    Serial.printf("Send  Data. Time µs: %d\n", micros() - micOutput);
-    #endif
-
-    delayMicroseconds(500); //Give LEDs some ontime - Best possible value: 900
-  }
-  Tlc.setAll(0);
-  for (int row = 0; row < MATRIX_ROWS; ++row)
-  {
-    #if DEBUGMULTIPLEX
-    long micTlc = micros();
-    #endif
-    for (int column = 0; column < MATRIX_COLUMNS; ++column)
-    {
-
-      #if DEBUGVALUES
-      Serial.printf("[%d %d %d] ", data[row * 16 * 3 + column * 3 + 0], data[row * 16 * 3 + column * 3 + 1], data[row * 16 * 3 + column * 3 + 2]);
-      #endif
-
-
       // Green
       Tlc.set(column + MATRIX_COLUMNS   , data[row * 48 + column * 3 + 1] * 16);
+       // Blue
+      Tlc.set(column + MATRIX_COLUMNS *2, data[row * 48 + column * 3 + 2] * 16);
 
     }
 
@@ -186,47 +150,9 @@ void loop()
     Serial.printf("Send  Data. Time µs: %d\n", micros() - micOutput);
     #endif
 
-    delayMicroseconds(500); //Give LEDs some ontime - Best possible value: 900
+    delayMicroseconds(900); //Give LEDs some ontime - Best possible value: 900
   }
   Tlc.setAll(0);
-  for (int row = 0; row < MATRIX_ROWS; ++row)
-  {
-    #if DEBUGMULTIPLEX
-    long micTlc = micros();
-    #endif
-    for (int column = 0; column < MATRIX_COLUMNS; ++column)
-    {
-
-      #if DEBUGVALUES
-      Serial.printf("[%d %d %d] ", data[row * 16 * 3 + column * 3 + 0], data[row * 16 * 3 + column * 3 + 1], data[row * 16 * 3 + column * 3 + 2]);
-      #endif
-
-
-      // Blue
-      Tlc.set(column + MATRIX_COLUMNS *2, data[row * 48 + column * 3 + 2] * 16);
-    }
-
-    #if DEBUGMULTIPLEX
-    Serial.printf("Set   Tlcs. Time µs: %d\n", micros() - micTlc);
-    #endif
-
-    #if DEBUGVALUES
-    Serial.print("\n");
-    #endif
-
-    #if DEBUGMULTIPLEX
-    long micOutput = micros();
-    #endif
-    while(Tlc.update()); //Wait to shift data
-    clearMultiplex();    // --- clear Shift register in meanwhile ---- Data COULD already be latched
-    while(tlc_needXLAT); //Wait to latch data
-    multiplex(row);
-    #if DEBUGMULTIPLEX
-    Serial.printf("Send  Data. Time µs: %d\n", micros() - micOutput);
-    #endif
-
-    delayMicroseconds(500); //Give LEDs some ontime - Best possible value: 900
-  }
 
   #if DEBUGVALUES
   Serial.print("\n\n\n");
@@ -247,51 +173,46 @@ void getDMX()
 
     memcpy(data, tempA, sizeof(tempA));
   }
-  else
-    if (readA == -1)
-    {
-
+  else if (readA == -1)
+  {
     #if DEBUG
       Serial.println("There is no DMX package available for port A");
     #endif
+  }
+  else
+  {
+    Serial.printf("%s: %d\n", "Error reading all 510 required DMX Channels from DMX.A. Read: ", readA);
+  }
 
-    }
-    else
-    {
-      Serial.printf("%s: %d\n", "Error reading all 510 required DMX Channels from DMX.A. Read: ", readA);
-    }
-    uint8_t tempB[258];
-    int readB = dmxRxB.readPacket(tempB, 1, 258);
-    if (readB == 258)
-    {
 
+  uint8_t tempB[258];
+  int readB = dmxRxB.readPacket(tempB, 1, 258);
+  if (readB == 258)
+  {
     #if DEBUG
       Serial.printf("DMX.B: %d\n", readB);
     #endif
 
-      memcpy(data + 510, tempB, sizeof(tempB));
-    }
-    else
-      if (readB == -1)
-      {
-
+    memcpy(data + 510, tempB, sizeof(tempB));
+  }
+  else if (readB == -1)
+  {
     #if DEBUG
-        Serial.println("There is no DMX package available for port B");
+      Serial.println("There is no DMX package available for port B");
     #endif
+  }
+  else
+  {
+    Serial.printf("%s: %d\n", "Error reading all 258 required DMX Channels from DMX.B. Read: ", readB);
+  }
+}
 
-      }
-      else
-      {
-        Serial.printf("%s: %d\n", "Error reading all 258 required DMX Channels from DMX.A. Read: ", readB);
-      }
-    }
-
-    void multiplex(int row)
-    {
+void multiplex(int row)
+{
   digitalWriteFast(SLatch, LOW); // Latch Low
   uint16_t shift_data = 1 << row;
   // ============================= SHIFTOUT =============================
-  for (uint16_t i = 0; i < 16; i++)
+  for (uint8_t i = 0; i < 16; i++)
   {
     digitalWriteFast(SData, !!(shift_data & (1 << i)));
     digitalWriteFast(SClock, HIGH);
@@ -308,7 +229,7 @@ void clearMultiplex()
 {
   digitalWriteFast(SLatch, LOW); // Latch Low
   // ============================= SHIFTOUT =============================
-  for (uint16_t i = 0; i < 16; i++)
+  for (uint8_t i = 0; i < 16; i++)
   {
     digitalWriteFast(SData, LOW);
     digitalWriteFast(SClock, HIGH);
