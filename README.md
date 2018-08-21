@@ -51,6 +51,8 @@ The images are from [this](http://www.instructables.com/id/Multiplexing-with-Ard
 ##### As you can see. It works! :) But there are some LEDs that need to be fixed
 
 ![working](docs/images/working.gif?raw=true "It works")
+![working](docs/images/working_picture.jpg?raw=true "It works")
+
 
 ## DMX
 Using ArtNet Node running on an ESP8266. See [this awesome project](https://github.com/mtongnz/ESP8266_ArtNetNode_v2).
