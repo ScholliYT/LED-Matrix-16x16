@@ -33,7 +33,7 @@ and GND.
 #include "Tlc5940.h"
 #include "TeensyDMX.h"
 // Debug
-#define DEBUG 0l
+#define DEBUG 0
 #define DEBUGVALUES 0
 #define DEBUGDMX 0
 #define DEBUGMULTIPLEX 0
