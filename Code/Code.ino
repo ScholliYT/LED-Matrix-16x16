@@ -33,11 +33,11 @@ and GND.
 #include "Tlc5940.h"
 #include "TeensyDMX.h"
 // Debug
-#define DEBUG 1
+#define DEBUG 0
 #define DEBUGVALUES 0
 #define DEBUGDMX 0
-#define DEBUGMULTIPLEX 1
-#define DEBUGREFRESHRATE 1
+#define DEBUGMULTIPLEX 0
+#define DEBUGREFRESHRATE 0
 #if DEBUGREFRESHRATE
 long lastLoop = 0;
 #endif
@@ -271,23 +271,22 @@ void getDMX()
 
       memcpy(data + 510, tempB, sizeof(tempB));
     }
-    else
-      if (readB == -1)
-      {
+    else if (readB == -1)
+    {
 
     #if DEBUG
         Serial.println("There is no DMX package available for port B");
     #endif
 
-      }
-      else
-      {
-        Serial.printf("%s: %d\n", "Error reading all 258 required DMX Channels from DMX.A. Read: ", readB);
-      }
     }
-
-    void multiplex(int row)
+    else
     {
+      Serial.printf("%s: %d\n", "Error reading all 258 required DMX Channels from DMX.A. Read: ", readB);
+    }
+}
+
+void multiplex(int row)
+{
   digitalWriteFast(SLatch, LOW); // Latch Low
   uint16_t shift_data = 1 << row;
   // ============================= SHIFTOUT =============================

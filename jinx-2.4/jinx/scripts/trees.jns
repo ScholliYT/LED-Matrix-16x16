@@ -1,0 +1,148 @@
+# Trees Jinx!Script
+# (c) 2015 Silas Zimmermann
+
+:init
+	# choose between 0 and 255
+	# 0 = no fading
+	# 255 = instant fading
+	config fade_amount = 10
+
+	# the place to start the new trees
+	# 0 = top border
+	# 1 = left border
+	# 2 = bottom border
+	# 3 = right border
+	# 4 = anywhere on the field in all 4 directions (set direction_correction to 1)
+	config start = 2
+
+	# the stepsize/speed
+	config stepsize = 1
+
+	# correction that the trees will grow to the top
+	# choose beween 0 and 1 (or other for weird behaviour)
+	# choose 1 if start = 4
+	# 0 = super strong correction (branches will only grow in the same direction)
+	# 1 = no correction (branches will grow as they want)
+	config direction_correction = 0.95
+
+	# how much the branches will seperate on a crotch
+	config branch_seperation = 0.5
+
+	# how much the branches grow randomly
+	# the bigger the more randomness
+	config randomness = 1
+
+	# if lines whould be used to draw (makes diffence if pixelstep is higher than 1)
+	# 0 = draw with points
+	# 1 = draw with lines
+	config lines = 1
+
+	# if tree should be cleared after drawing
+	# 0 = do not clear tree
+	# 1 = clear tree
+	config clear_tree = 0
+
+	# how much branches there should be
+	# the higher the more branches
+	config branch_amount = 1
+
+	dir = start/2*pi
+	count = 1
+	alive[0] = -1
+end
+
+:render
+	dead = 0
+	fade fade_amount
+	for nr=0 to count-1	
+		if alive[nr] = -1
+			dead = dead+1
+			continue
+		endif	
+		if rnd((count^2+2)/stepsize/branch_amount) = 0
+			gosub new_number
+			px[newnr] = px[nr]
+			py[newnr] = py[nr]
+			d[newnr] = d[nr]-branch_seperation
+			d[nr] = d[nr]+branch_seperation
+			alive[newnr] = 0
+		endif
+		oldx = px[nr]
+		oldy = py[nr]
+		px[nr] = px[nr]+sin(d[nr])*stepsize
+		py[nr] = py[nr]+cos(d[nr])*stepsize
+		d[nr] = d[nr]+(rnd(100)-50)/1000*randomness*stepsize
+		d[nr] = (d[nr]-dir)*direction_correction+dir
+		if px[nr] > matrix_x
+			alive[nr] = -1
+		endif
+		if py[nr] > matrix_y
+			alive[nr] = -1
+		endif
+		if px[nr] < -1
+			alive[nr] = -1
+		endif
+		if py[nr] < -1
+			alive[nr] = -1
+		endif
+		if lines = 1
+			line oldx, oldy, px[nr], py[nr], autocolor_red, autocolor_green, autocolor_blue
+		else
+			pset px[nr], py[nr], autocolor_red, autocolor_green, autocolor_blue
+		endif
+	next
+	if dead = count
+		if clear_tree = 1
+			clear
+		endif
+		count = 1
+		sx = rnd(matrix_x-1)
+		sy = rnd(matrix_y-1)
+		gosub new_tree		
+		if start = 4
+			for i=0 to 2
+				dir = dir+pi/2
+				gosub new_tree
+			next
+		endif
+	endif
+end
+
+:new_number
+	newnr = count
+	for j=0 to count-1
+		if alive[j] = -1
+			newnr = j
+			break
+		endif
+	next
+	if newnr = count
+		count = count+1
+	endif
+return
+
+:new_tree
+	gosub new_number
+	alive[newnr] = 0
+	if start = 0
+		px[newnr] = sx
+		py[newnr] = -1
+	endif
+	if start = 1
+		px[newnr] = -1
+		py[newnr] = sy
+	endif
+	if start = 2
+		px[newnr] = sx
+		py[newnr] = matrix_y
+	endif
+	if start = 3
+		px[newnr] = matrix_x
+		py[newnr] = sy
+	endif
+	if start = 4
+		px[newnr] = sx
+		py[newnr] = sy
+	endif
+	d[newnr] = dir
+return

@@ -1,0 +1,205 @@
+# Game of life in Jinx!Script
+# (c) 2015 Silas Zimmermann
+
+
+# routine for initializing
+:init
+	restart = 1
+	
+	#set to 1 for automatic restart if the matrix does not change
+	config autorestart = 1
+
+	# 0 for random start
+	# 1 for glider (deactivate autorestart)
+	# 2 for f-pentomino
+	# 3 for explosion
+	config startmode = 0
+
+	#ratio of living cells at a random start
+	#choose between 0 and 1
+	# 1 for all cells are living
+	# 0 for no cells are living
+	config random_living_ratio = 0.5
+
+	# 1 for all cells on the border are dead (not functional yet)
+	# 0 for continious matrix (top border is connected to bottom border and left border is connected to right border)
+	# any other number lets explode the pc, the matrix and the whole world
+	config deadborder = 0
+end
+
+
+# main routine for frame generation
+:render	
+	for x=0 to matrix_x-1
+		inc_x = x+1
+		if inc_x = matrix_x & deadborder = 0
+			inc_x = 0
+		endif
+		dec_x = x-1
+		if dec_x = -1 & deadborder = 0
+			dec_x = matrix_x-1
+		endif
+		for y=0 to matrix_y-1
+
+			inc_y = y+1
+			if inc_y = matrix_y & deadborder = 0
+				inc_y = 0
+			endif
+			dec_y = y-1
+			if dec_y = -1 & deadborder = 0
+				dec_y = matrix_y-1
+			endif
+
+			#count the neighbours start
+			count = 0
+
+			#(x-1/y-1)
+			pget dec_x, dec_y, r, g, b
+			if r+g+b > 0
+				count = count+1
+			endif
+
+			#(x-1/y)
+			pget dec_x, y, r, g, b	
+			if r+g+b > 0
+				count = count+1
+			endif
+
+			#(x-1/y+1)
+			pget dec_x, inc_y, r, g, b	
+			if r+g+b > 0
+				count = count+1
+			endif
+
+			#(x/y-1)
+			pget x, dec_y, r, g, b	
+			if r+g+b > 0
+				count = count+1
+			endif
+
+			#(x/y+1)
+			pget x, inc_y, r, g, b	
+			if r+g+b > 0
+				count = count+1
+			endif
+
+			#(x+1/y-1)
+			pget inc_x, dec_y, r, g, b	
+			if r+g+b > 0
+				count = count+1
+			endif
+
+			#(x+1/y)
+			pget inc_x, y, r, g, b	
+			if r+g+b > 0
+				count = count+1
+			endif
+
+			#(x+1/y+1)
+			pget inc_x, inc_y, r, g, b	
+			if r+g+b > 0
+				count = count+1
+			endif
+			#count the neighbours end
+
+			#(x/y)
+			pget x, y, r, g, b	
+			if r+g+b > 0
+				on = 1
+			else
+				on = 0
+			endif
+			
+			#save the new matrix in an array
+			if count = 3 | (count = 2 & on = 1)
+				matrix[x+y*matrix_x] = 1
+			else
+				matrix[x+y*matrix_x] = 0
+			endif
+		next
+	next
+	
+	#set the new picture and count the living cells
+	clear
+	oncount = 0
+	for x=0 to matrix_x-1
+		for y=0 to matrix_y-1
+			if matrix[x+y*matrix_x] = 1
+				pset x, y, autocolor_red, autocolor_green, autocolor_blue
+				oncount = oncount+1
+			endif
+		next
+	next
+
+	#count how many rounds the living cell count has not changed
+	if oncount = lastcount
+		samecount = samecount+1
+	else
+		samecount = 0
+	endif
+	lastcount = oncount
+
+	#autorestart if the living cell count has not changed for 10 rounds
+	if samecount = 10 & autorestart = 1
+		restart = 1
+		samecount = 0
+	endif
+
+	#on restart generate a new random matrix
+	if restart = 1 
+		clear
+
+		#random start
+		if startmode = 0
+			for x=0 to matrix_x-1
+				for y=0 to matrix_y-1
+					if rnd(1000)/1001 < random_living_ratio
+						pset x, y, autocolor_red, autocolor_green, autocolor_blue
+					endif
+				next
+			next
+
+		#glider
+		else if startmode = 1
+			midx = matrix_x/2
+			midy = matrix_y/2
+			pset midx-1, midy-1, autocolor_red, autocolor_green, autocolor_blue
+			pset midx-1, midy, autocolor_red, autocolor_green, autocolor_blue
+			pset midx-1, midy+1, autocolor_red, autocolor_green, autocolor_blue
+			pset midx, midy-1, autocolor_red, autocolor_green, autocolor_blue
+			pset midx+1, midy, autocolor_red, autocolor_green, autocolor_blue
+
+		#f-pentomino
+		else if startmode = 2
+			midx = matrix_x/2
+			midy = matrix_y/2
+			pset midx, midy-1, autocolor_red, autocolor_green, autocolor_blue
+			pset midx, midy, autocolor_red, autocolor_green, autocolor_blue
+			pset midx, midy+1, autocolor_red, autocolor_green, autocolor_blue
+			pset midx-1, midy, autocolor_red, autocolor_green, autocolor_blue
+			pset midx+1, midy-1, autocolor_red, autocolor_green, autocolor_blue
+
+		#explosion
+		else if startmode = 3
+			midx = matrix_x/2
+			midy = matrix_y/2
+			pset midx-1, midy-3, autocolor_red, autocolor_green, autocolor_blue
+			pset midx, midy-3, autocolor_red, autocolor_green, autocolor_blue
+			pset midx+1, midy-3, autocolor_red, autocolor_green, autocolor_blue
+			pset midx-1, midy-2, autocolor_red, autocolor_green, autocolor_blue
+			pset midx+1, midy-2, autocolor_red, autocolor_green, autocolor_blue
+			pset midx-1, midy-1, autocolor_red, autocolor_green, autocolor_blue
+			pset midx+1, midy-1, autocolor_red, autocolor_green, autocolor_blue
+			pset midx-1, midy+3, autocolor_red, autocolor_green, autocolor_blue
+			pset midx, midy+3, autocolor_red, autocolor_green, autocolor_blue
+			pset midx+1, midy+3, autocolor_red, autocolor_green, autocolor_blue
+			pset midx-1, midy+2, autocolor_red, autocolor_green, autocolor_blue
+			pset midx+1, midy+2, autocolor_red, autocolor_green, autocolor_blue
+			pset midx-1, midy+1, autocolor_red, autocolor_green, autocolor_blue
+			pset midx+1, midy+1, autocolor_red, autocolor_green, autocolor_blue
+
+
+		endif
+		restart = 0 
+	endif
+end
