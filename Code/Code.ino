@@ -29,15 +29,16 @@ XLAT on Arduino  -> XLAT of TLC1  -> XLAT of TLC2  -> ...
 The one exception is that each TLC needs it's own resistor between pin 20
 and GND.
 */
+
 // Imports
 #include "Tlc5940.h"
 #include "TeensyDMX.h"
 // Debug
-#define DEBUG 0
+#define DEBUG 1
 #define DEBUGVALUES 0
-#define DEBUGDMX 0
-#define DEBUGMULTIPLEX 0
-#define DEBUGREFRESHRATE 0
+#define DEBUGDMX 1
+#define DEBUGMULTIPLEX 1
+#define DEBUGREFRESHRATE 1
 #if DEBUGREFRESHRATE
 long lastLoop = 0;
 #endif
@@ -50,6 +51,8 @@ long lastLoop = 0;
 #define SClock 21
 // DMX Data
 uint8_t data[MATRIX_ROWS * MATRIX_COLUMNS * 3];
+uint8_t dmxABuffer[510]; // 510 channels in channel A
+uint8_t dmxBBuffer[258]; // remaining 258 channels in port B
 // DMX Connection
 namespace teensydmx =::qindesign::teensydmx;
 teensydmx::Receiver dmxRxA
@@ -64,31 +67,29 @@ teensydmx::Receiver dmxRxB
 
 void setup()
 {
-  Serial.begin(250000);
+  delay(250);
+  Serial.begin(1000000);
   Serial.print("\n\n\n\n\n");
   Serial.println("Starting LED Matrix");
   Serial.printf("TLCs: %d\n", NUM_TLCS);
+  Serial.printf("TLC_PWM_PERIOD: %d\n", TLC_PWM_PERIOD);
   Serial.printf("Dimension: %dx%d\n", MATRIX_ROWS, MATRIX_COLUMNS);
+
   pinMode(SData, OUTPUT);
   pinMode(SLatch, OUTPUT);
   pinMode(SClock, OUTPUT);
   pinMode(13, OUTPUT);
+
   dmxRxA.begin();
   dmxRxB.begin();
-  /*for (int i = 0; i < 5; i++)
-  {
-  digitalWrite(13, HIGH);
-  delay(50);
-  digitalWrite(13, LOW);
-  delay(50);
-  }*/
+
   digitalWrite(13, HIGH);
   delay(500);
   digitalWrite(13, LOW);
   delay(500);
   digitalWrite(13, HIGH);
-/* Call Tlc.init() to setup the tlc.
-You can optionally pass an initial PWM value (0 - 4095) for all channels.*/
+  /* Call Tlc.init() to setup the tlc.
+  You can optionally pass an initial PWM value (0 - 4095) for all channels.*/
   Tlc.init();
 }
 
@@ -96,7 +97,7 @@ void loop()
 {
   #if DEBUGREFRESHRATE
   long time = micros() - lastLoop;
-  Serial.printf("Refresh Time µs: %d. Hz: %d\n", time, 1000000 / time);
+  Serial.printf("Refresh Time µs: %d. %dHz\n", time, 1000000 / time);
   lastLoop = micros();
   #endif
 
@@ -110,12 +111,14 @@ void loop()
   Serial.printf("Got new DMX Values. Time µs: %d\n", micros() - micGetDMX);
   #endif
   Tlc.setAll(0);
-  for (int row = 0; row < MATRIX_ROWS; ++row)
+  for (uint8_t row = 0; row < MATRIX_ROWS; ++row)
   {
     #if DEBUGMULTIPLEX
+    Serial.printf("Row: %d\n", row);
+    
     long micTlc = micros();
     #endif
-    for (int column = 0; column < MATRIX_COLUMNS; ++column)
+    for (uint8_t column = 0; column < MATRIX_COLUMNS; ++column)
     {
 
       #if DEBUGVALUES
@@ -142,15 +145,19 @@ void loop()
     #if DEBUGMULTIPLEX
     long micOutput = micros();
     #endif
-    while(Tlc.update()); //Wait to shift data
     clearMultiplex();    // --- clear Shift register in meanwhile ---- Data COULD already be latched
-    while(tlc_needXLAT); //Wait to latch data
+    Serial.printf("Clear multiplex. Time µs: %d\n", micros() - micOutput);
+    while(Tlc.update()); //Wait to shift data
+    Serial.printf("Tlc update. Time µs: %d\n", micros() - micOutput);
+    //while(tlc_needXLAT); //Wait to latch data
+      //Serial.printf("tlc need xlat. Time µs: %d\n", micros() - micOutput);
     multiplex(row);
+    Serial.printf("Multiplex row. Time µs: %d\n", micros() - micOutput);
     #if DEBUGMULTIPLEX
     Serial.printf("Send  Data. Time µs: %d\n", micros() - micOutput);
     #endif
 
-    delayMicroseconds(900); //Give LEDs some ontime - Best possible value: 900
+    delayMicroseconds(920); //Give LEDs some ontime - Best possible value: 900
   }
   Tlc.setAll(0);
 
@@ -160,10 +167,14 @@ void loop()
 
 }
 
+
+/*
+ * Checks dmx Port A and for available data. If there is data available it will be copied to
+ * the data array. 
+ */
 void getDMX()
 {
-  uint8_t tempA[510];
-  int readA = dmxRxA.readPacket(tempA, 1, 510);
+  int readA = dmxRxA.readPacket(dmxABuffer, 1, 510);
   if (readA == 510)
   {
 
@@ -171,7 +182,7 @@ void getDMX()
     Serial.printf("DMX.A: %d\n", readA);
     #endif
 
-    memcpy(data, tempA, sizeof(tempA));
+    memcpy(data, dmxABuffer, sizeof(dmxABuffer));
   }
   else if (readA == -1)
   {
@@ -181,19 +192,18 @@ void getDMX()
   }
   else
   {
-    Serial.printf("%s: %d\n", "Error reading all 510 required DMX Channels from DMX.A. Read: ", readA);
+    Serial.printf("Error reading all 510 required DMX Channels from DMX.A. Read: %d\n", readA);
   }
 
 
-  uint8_t tempB[258];
-  int readB = dmxRxB.readPacket(tempB, 1, 258);
+  int readB = dmxRxB.readPacket(dmxBBuffer, 1, 258);
   if (readB == 258)
   {
     #if DEBUG
       Serial.printf("DMX.B: %d\n", readB);
     #endif
 
-    memcpy(data + 510, tempB, sizeof(tempB));
+    memcpy(data + sizeof(dmxABuffer), dmxBBuffer, sizeof(dmxBBuffer));
   }
   else if (readB == -1)
   {
@@ -203,33 +213,40 @@ void getDMX()
   }
   else
   {
-    Serial.printf("%s: %d\n", "Error reading all 258 required DMX Channels from DMX.B. Read: ", readB);
+    Serial.printf("Error reading all 258 required DMX Channels from DMX.B. Read: %d\n", readB);
   }
 }
 
-void multiplex(int row)
+/*
+ * Activates the row by multiplexing to Shift registers, turning only one ouptut on.
+ * row is a value between 0 and MATRIX_ROWS-1
+ */
+void multiplex(uint8_t row)
 {
   digitalWriteFast(SLatch, LOW); // Latch Low
   uint16_t shift_data = 1 << row;
   // ============================= SHIFTOUT =============================
-  for (uint8_t i = 0; i < 16; i++)
+  for (uint8_t i = 0; i < MATRIX_ROWS; i++)
   {
     digitalWriteFast(SData, (shift_data & (1 << i))!=0?1:0);
     digitalWriteFast(SClock, HIGH);
     __asm__ __volatile__ ("nop\n\t");
     __asm__ __volatile__ ("nop\n\t");
     digitalWriteFast(SClock, LOW);
+    digitalWriteFast(SData, LOW);
   }
   // ============================= SHIFTOUT =============================
-  digitalWriteFast(SData, LOW);
   digitalWriteFast(SLatch, HIGH); // Latch High
 }
 
+/*
+ * Sets all shift register outputs off.
+ */
 void clearMultiplex()
 {
   digitalWriteFast(SLatch, LOW); // Latch Low
   // ============================= SHIFTOUT =============================
-  for (uint8_t i = 0; i < 16; i++)
+  for (uint8_t i = 0; i < MATRIX_ROWS; i++)
   {
     digitalWriteFast(SData, LOW);
     digitalWriteFast(SClock, HIGH);
