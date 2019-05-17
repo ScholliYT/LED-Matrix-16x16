@@ -214,7 +214,7 @@ void multiplex(int row)
   // ============================= SHIFTOUT =============================
   for (uint8_t i = 0; i < 16; i++)
   {
-    digitalWriteFast(SData, !!(shift_data & (1 << i)));
+    digitalWriteFast(SData, (shift_data & (1 << i))!=0?1:0);
     digitalWriteFast(SClock, HIGH);
     __asm__ __volatile__ ("nop\n\t");
     __asm__ __volatile__ ("nop\n\t");
