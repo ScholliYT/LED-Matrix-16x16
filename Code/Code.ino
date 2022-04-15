@@ -34,7 +34,7 @@ and GND.
 #include "Tlc5940.h"
 #include "TeensyDMX.h"
 // Debug
-#define DEBUG 1
+#define DEBUG 0
 #define DEBUGVALUES 0
 #define DEBUGDMX 1
 #define DEBUGMULTIPLEX 1
@@ -97,7 +97,7 @@ void loop()
 {
   #if DEBUGREFRESHRATE
   long time = micros() - lastLoop;
-  Serial.printf("Refresh Time µs: %d. %dHz\n", time, 1000000 / time);
+  Serial.printf("Refresh Time: %dµs. %dHz\n", time, 1000000 / time);
   lastLoop = micros();
   #endif
 
@@ -108,16 +108,16 @@ void loop()
   getDMX();
 
   #if DEBUGDMX
-  Serial.printf("Got new DMX Values. Time µs: %d\n", micros() - micGetDMX);
+  Serial.printf("Got new DMX Values. Time: %dµs\n", micros() - micGetDMX);
   #endif
   Tlc.setAll(0);
   for (uint8_t row = 0; row < MATRIX_ROWS; ++row)
   {
     #if DEBUGMULTIPLEX
     Serial.printf("Row: %d\n", row);
-    
     long micTlc = micros();
     #endif
+
     for (uint8_t column = 0; column < MATRIX_COLUMNS; ++column)
     {
 
@@ -135,7 +135,7 @@ void loop()
     }
 
     #if DEBUGMULTIPLEX
-    Serial.printf("Set   Tlcs. Time µs: %d\n", micros() - micTlc);
+    Serial.printf("Set TLCs time: %dµs\n", micros() - micTlc);
     #endif
 
     #if DEBUGVALUES
@@ -145,26 +145,41 @@ void loop()
     #if DEBUGMULTIPLEX
     long micOutput = micros();
     #endif
+
     clearMultiplex();    // --- clear Shift register in meanwhile ---- Data COULD already be latched
-    Serial.printf("Clear multiplex. Time µs: %d\n", micros() - micOutput);
-    while(Tlc.update()); //Wait to shift data
-    Serial.printf("Tlc update. Time µs: %d\n", micros() - micOutput);
-    //while(tlc_needXLAT); //Wait to latch data
-      //Serial.printf("tlc need xlat. Time µs: %d\n", micros() - micOutput);
-    multiplex(row);
-    Serial.printf("Multiplex row. Time µs: %d\n", micros() - micOutput);
+
     #if DEBUGMULTIPLEX
-    Serial.printf("Send  Data. Time µs: %d\n", micros() - micOutput);
+    Serial.printf("Clear multiplex. Time µs: %d\n", micros() - micOutput);
+    micOutput = micros();
+    while(tlc_needXLAT); //Wait to latch data
+    Serial.printf("TLC waiting for XLAT time: %dµs\n", micros() - micOutput);
+    micOutput = micros();
     #endif
 
-    delayMicroseconds(920); //Give LEDs some ontime - Best possible value: 900
+    while(Tlc.update()); //Wait to shift data
+
+    #if DEBUGMULTIPLEX
+    Serial.printf("Tlc update. Time µs: %d\n", micros() - micOutput);
+    micOutput = micros();
+    while(tlc_needXLAT); //Wait to latch data
+    Serial.printf("TLC waiting for XLAT time: %dµs\n", micros() - micOutput);
+    micOutput = micros();
+    #endif
+    
+    multiplex(row);
+
+    #if DEBUGMULTIPLEX
+    Serial.printf("Multiplex row. Time µs: %d\n", micros() - micOutput);
+    micOutput = micros();
+    #endif
+
+    delayMicroseconds(500); //Give LEDs some ontime - Best possible value: 900
   }
   Tlc.setAll(0);
 
   #if DEBUGVALUES
   Serial.print("\n\n\n");
   #endif
-
 }
 
 
